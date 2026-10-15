@@ -103,6 +103,8 @@ enum SettingsBackupSupport {
         DefaultsKey.displaysSwitchedOff,
         DefaultsKey.displaysSwitchedOffFingerprints,
         DefaultsKey.dockPreviewRestoreAutohide,
+        // Space UUIDs and their names belong to this Mac.
+        DefaultsKey.notchSpacesNames,
         // The Space arrangement setting to put back, and a Dock restart still
         // owed, belong to this Mac's Dock.
         DefaultsKey.spacesOrderRestore,
