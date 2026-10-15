@@ -2117,8 +2117,6 @@ final class NotchService: ObservableObject {
         openSettings()
     }
 
-    /// A Space click hands keyboard focus back before posting a system
-    /// shortcut. The island's private overlay Space must not receive it.
     func switchSpace(_ id: UInt64) {
         guard acceptsUserInteraction, modules.contains(.spaces),
               NotchSpacesService.shared.snapshot.spaces.contains(where: { $0.id == id && !$0.current }) else { return }
@@ -2592,8 +2590,6 @@ final class NotchService: ObservableObject {
         } else if notice != nil || dragPlaceholder {
             activationRect = .zero
         } else if compactActivityIsVisible, compactActivity == .spaces {
-            // The physical camera keeps its usual opening target. A floating
-            // capsule opens from the SwiftUI background behind its Space buttons.
             activationRect = geometry.floats || NotchSpacesSupport.isExternalDisplay(frame: geometry.screen)
                 ? .zero : compactActivityGeometry.activationArea(
                 in: size, hasHeader: false, compactActivity: true)

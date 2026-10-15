@@ -1711,8 +1711,6 @@ enum NotchSupport {
         }
     }
 
-    /// The independent Spaces switch adds a resting surface without writing
-    /// to the existing idle-content preference or outranking live activities.
     static func restingActivity(selected: NotchCompactActivity?, spacesEnabled: Bool,
                                 spacesAvailable: Bool) -> NotchCompactActivity? {
         selected ?? (spacesEnabled && spacesAvailable ? .spaces : nil)

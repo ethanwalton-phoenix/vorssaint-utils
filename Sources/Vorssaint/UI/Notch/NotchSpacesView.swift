@@ -98,8 +98,6 @@ struct NotchSpacesSettingsControls: View {
     }
 }
 
-/// A current-desktop reading uses the existing watch strip's sizing. A
-/// capsule runs end to end; a camera housing keeps the text on its right.
 struct NotchSpacesStrip: View {
     @ObservedObject var service: NotchService
     var size: CGSize? = nil
@@ -177,8 +175,6 @@ struct NotchSpacesStrip: View {
         .accessibilityIdentifier("notch.spaces")
     }
 
-    /// With no physical camera, every pill can share the available width.
-    /// Long rows retain a minimum hit target and scroll instead of squeezing.
     private func expandedSpaces(width: CGFloat, height: CGFloat, inset: CGFloat) -> some View {
         let row = spaces.snapshot.spaces
         let inset = (inset * displayScale).rounded(.up) / displayScale
@@ -227,8 +223,6 @@ struct NotchSpacesStrip: View {
         guard allDisplays, let index = row.firstIndex(where: { $0.id == space.id }), index > 0,
               let display = space.displayID, let previousDisplay = row[index - 1].displayID,
               display != previousDisplay else { return 0 }
-        // A one-point divider with six points of clear space on either side,
-        // including the row's existing four-point gap.
         return 13 - NotchSpacesLayout.spacing
     }
 
@@ -294,8 +288,6 @@ struct NotchSpacesStrip: View {
     }
 }
 
-/// A two-point overflow indicator leaves the compact pills their full height.
-/// `.never` also suppresses legacy scrollers when macOS always shows scroll bars.
 private struct NotchSpacesScrollView<Content: View>: View {
     let width: CGFloat
     let height: CGFloat

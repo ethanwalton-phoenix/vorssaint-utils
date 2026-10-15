@@ -846,7 +846,6 @@ enum DefaultsKey {
     static let notchQueueEnabled = "notchQueueEnabled"
     static let notchDownloadsEnabled = "notchDownloadsEnabled"
     static let notchDownloadsFolderBookmark = "notchDownloadsFolderBookmark"
-    // Named desktops in the island; names remain local to this Mac.
     static let notchSpacesEnabled = "notchSpacesEnabled"
     static let notchSpacesIdleEnabled = "notchSpacesIdleEnabled"
     static let notchSpacesShowCurrent = "notchSpacesShowCurrent"

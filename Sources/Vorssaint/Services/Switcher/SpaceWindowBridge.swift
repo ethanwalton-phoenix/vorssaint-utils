@@ -395,9 +395,6 @@ enum SpaceWindowBridge {
         registeredShortcut(direction.hotKeyID)
     }
 
-    /// Mission Control's numbered desktop shortcuts are independent of the
-    /// directional ones. Read the actual registration so remaps and disabled
-    /// bindings are honored, and full-screen Spaces never borrow a number.
     static func desktopShortcut(number: Int?) -> SpaceShortcut? {
         guard let id = SpaceHopSupport.desktopHotKeyID(number: number) else { return nil }
         return registeredShortcut(id)

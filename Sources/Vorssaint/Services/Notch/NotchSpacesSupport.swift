@@ -31,8 +31,6 @@ struct NotchSpace: Equatable, Identifiable {
     }
 }
 
-/// Space identity is independent of its position. Full-screen Spaces occupy
-/// positions in the row, but never consume a desktop number.
 enum NotchSpacesSupport {
     static func isEnabled(in defaults: UserDefaults = .standard) -> Bool {
         NotchSupport.isEnabled(in: defaults)
@@ -63,8 +61,6 @@ enum NotchSpacesSupport {
         }
     }
 
-    /// Screen coordinates use a bottom-left origin. Keep each display's
-    /// desktop order, with ties arranged from top to bottom, then source order.
     static func orderedByDisplayPosition(_ spaces: [NotchSpace], frames: [CGDirectDisplayID: CGRect]) -> [NotchSpace] {
         spaces.enumerated().sorted { left, right in
             let lhs = left.element.displayID.flatMap { frames[$0] }
@@ -101,9 +97,6 @@ enum NotchSpacesSupport {
             let isDesktop = !fullscreen.contains(id)
             if isDesktop { number += 1 }
             let uuid = uuids[id].flatMap { UUID(uuidString: $0)?.uuidString }
-            // Some default desktops have no UUID. Keep their fallback names
-            // separate by display and desktop number; UUID-backed names still
-            // follow the Space itself across reordering.
             let fallback = isDesktop ? displayIdentifier.map { "display:\($0):desktop:\(number)" } : nil
             let key = uuid ?? fallback
             return NotchSpace(id: id, uuid: uuid, desktopNumber: isDesktop ? number : nil,
@@ -119,8 +112,6 @@ enum NotchSpacesSupport {
     }
 }
 
-/// Shared measurements keep the pills and the island width in agreement.
-/// Long rows scroll inside their budget, so every Space remains reachable.
 enum NotchSpacesLayout {
     static let badgeFontSize: CGFloat = 11
     static let titleWidth: CGFloat = 150
@@ -149,8 +140,6 @@ enum NotchSpacesLayout {
         guard available.isFinite, count > 0 else { return 0 }
         let scale = scale.isFinite && scale > 0 ? scale : 1
         let width = (max(0, available) - CGFloat(count - 1) * spacing) / CGFloat(count)
-        // Any remainder belongs equally at the two ends of the centered row,
-        // rather than accumulating on the trailing edge of a scroll view.
         return max(44, (width * scale).rounded(.down) / scale)
     }
 
@@ -168,9 +157,6 @@ enum NotchSpacesLayout {
         (arrangements(spaces: spaces).map { max($0.current, $0.others) }.max() ?? 20) + 24
     }
 
-    /// Reserve the widest arrangement of these same Spaces, independent of
-    /// which one is current. Names and topology may resize the island; merely
-    /// visiting another desktop must not. Measure each label only once.
     private static func arrangements(spaces: [NotchSpace]) -> [(current: CGFloat, others: CGFloat)] {
         let widths = spaces.map { labelWidth($0.compactLabel) }
         let badges = widths.map { min(badgeWidth, $0) }

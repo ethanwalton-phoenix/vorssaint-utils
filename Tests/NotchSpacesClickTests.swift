@@ -4,8 +4,6 @@
 import AppKit
 import Foundation
 
-/// Production click and travel methods with inert input and queued arrival
-/// callbacks. These contracts never post a keyboard event or change a Space.
 enum NotchSpacesClickTests {
     static func space(_ id: UInt64, number: Int?, current: Bool = false) -> NotchSpace {
         NotchSpace(id: id, uuid: nil, desktopNumber: number, current: current, name: nil)
@@ -103,7 +101,6 @@ enum NotchSpacesClickTests {
         var builtIn = space(10, number: 1, current: true)
         builtIn.displayID = 1
         sharedArrows.snapshot.spaces = [builtIn, externalCurrent, externalTarget]
-        // The target must be hidden for the click to travel.
         sharedArrows.snapshot.spaces[2] = space(50, number: 5)
         sharedArrows.snapshot.spaces[2].displayID = 2
         sharedArrows.select(50)

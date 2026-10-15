@@ -4,10 +4,6 @@
 import AppKit
 import Combine
 
-/// Reads the desktops of the pointer's display, or all connected displays.
-/// Travel reuses registered shortcuts, waits for each arrival and stops if a
-/// press stalls.
-/// Nothing creates, reorders or renames a desktop in Mission Control itself.
 final class NotchSpacesService: ObservableObject {
     static let shared = NotchSpacesService()
 
@@ -62,8 +58,6 @@ final class NotchSpacesService: ObservableObject {
                 }
                 observers.append((center, token))
             }
-            // Display selection follows the pointer even without a desktop
-            // change. A slow fallback also catches desktops added or removed.
             let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in self?.refresh() }
             timer.tolerance = 0.2
             RunLoop.main.add(timer, forMode: .common)
@@ -93,8 +87,6 @@ final class NotchSpacesService: ObservableObject {
             ?? (!NSScreen.screensHaveSeparateSpaces ? topology.displays.first : nil)
         guard display != nil else { snapshot = Snapshot(); return }
         let names = UserDefaults.standard.dictionary(forKey: DefaultsKey.notchSpacesNames) as? [String: String] ?? [:]
-        // Preserve Mission Control's global desktop numbers even when the
-        // switcher shows only one display. Retain each Space's owner for travel.
         let identifiers = SpaceWindowBridge.displayIDsByUUID()
         let allDisplays = UserDefaults.standard.bool(forKey: DefaultsKey.notchSpacesAllDisplays)
         var offset = 0
@@ -121,8 +113,6 @@ final class NotchSpacesService: ObservableObject {
             else { return nil }
             return (id, screen.frame)
         })
-        // Presentation order follows the physical arrangement; desktop numbers
-        // above retain Mission Control's order for system shortcut routing.
         let ordered = NotchSpacesSupport.orderedByDisplayPosition(rows, frames: frames)
         let next = Snapshot(displayID: displayID, displayName: screen?.localizedName ?? "",
                             spaces: NotchSpacesSupport.visibleSpaces(ordered, on: displayID,
