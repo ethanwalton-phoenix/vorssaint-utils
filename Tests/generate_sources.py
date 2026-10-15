@@ -659,6 +659,13 @@ def main():
               "    private func applyOutputControls(", "    private func drainOutputAdjustment(",
               "    func setCurrentOutputVolume("])
           + "}\n}\n")
+    write("MixerHeadphonesDisconnect.swift", "import CoreAudio\nimport Foundation\n"
+          + "extension MixerHeadphonesDisconnectContract.Mixer {\n"
+          + "".join(declaration(mixer, prefix).replace("private ", "", 1) for prefix in [
+              "    private struct LoweredOutput {", "    private struct LoweredOutputState {",
+              "    private static func loweringOutputVolumeIfHeadphonesDisconnected(",
+              "    private static func restoringLoweredOutputVolume("])
+          + "}\n")
     write("NotchVolumeRouting.swift", "import Foundation\nimport CoreGraphics\n"
           + "extension NotchVolumeRoutingTests {\nfinal class Service: State {\n"
           + declaration("Sources/Vorssaint/Services/Audio/PreciseVolumeRollerService.swift",
@@ -959,7 +966,8 @@ def main():
     music_visibility = music_visibility.replace("AppFeature.connectedDevices.isAvailable",
                                                 "AppFeature.connectedDevices.isAvailable(in: ReviewDefaults.current)")
     write("NotchMusicVisibility.swift", "import Foundation\nextension NotchMusicVisibilityTests {\n"
-          + "final class Service: State {\n" + music_visibility + "}\n}\n")
+          + "final class Service: State {\nfunc resignPanelKey() { panel?.resignKey() }\n"
+          + music_visibility + "}\n}\n")
     write("NotchScreenEdgeClicks.swift", "import AppKit\nextension NotchScreenEdgeClickTests {\nfinal class Service: State {\n"
           + "func open() { openings += 1; expanded = true; syncScreenEdgeClicks() }\n"
           + "".join(declaration(notch, prefix).replace("    private ", "    ", 1) for prefix in [
@@ -1026,6 +1034,7 @@ def main():
           + "}\n}\n")
     write("NotchPresentationRefresh.swift", "import AppKit\nimport Foundation\nimport Combine\nimport SwiftUI\n"
           + "extension NotchPresentationRefreshContract {\nfinal class Service: State {\n"
+          + "func resignPanelKey() { panel?.resignKey() }\n"
           + "func hover(_ entered: Bool) {\nlet wasInside = inside\n"
           + "inside = windowHost?.containsHover(NSEvent.mouseLocation) == true\n"
           + "hoverState.update(pointerInside: inside)\nupdateCaptureControlsHover(wasInside: wasInside)\n}\n"
@@ -1111,6 +1120,11 @@ def main():
                              if line.startswith("    case "))
     menu_metric_cases = "\n".join(line for line in declaration(renderer, "enum MenuBarMetric:").splitlines()
                                   if line.startswith("    case "))
+    # toggle() fits on one line, which declaration() cannot bound.
+    toggle = [line for line in (ROOT / notch).read_text().splitlines(keepends=True)
+              if line.startswith("    func toggle() {")]
+    if len(toggle) != 1 or not toggle[0].rstrip().endswith("}"):
+        raise ValueError("Expected a one-line toggle() in NotchService")
     write("NotchDestinations.swift", "import Foundation\n\nextension NotchDestinationContract {\n"
           + "enum MetricDetailKind: String {\n" + metric_cases + "\n}\n"
           + "enum MenuBarMetric: String, CaseIterable {\n" + menu_metric_cases + "\n"
@@ -1126,6 +1140,7 @@ def main():
           + "func removeHoverExitMonitors() {}\n"
           + declaration(notch, "    func showScratchpad(")
               .replace("NotchSupport.routesScratchpad()", "NotchSupport.routesScratchpad(in: ReviewDefaults.current)")
+          + declaration(notch, "    func resignPanelKey()")
           + declaration(notch, "    func toggleSections()")
           + declaration(notch, "    func goBack()")
           + declaration(notch, "    private func stepBack()").replace("private func", "func", 1)
@@ -1141,6 +1156,11 @@ def main():
           + declaration(notch, "    private func updateSession(").replace("private func", "func", 1)
               .replace("AppFeature.mixer.isAvailable", "AppFeature.mixer.isAvailable(in: ReviewDefaults.current)")
               .replace("NotchLockScreenSupport.playsSounds()", "NotchLockScreenSupport.playsSounds(in: ReviewDefaults.current)")
+          # The press handler the initializer installs, run on demand.
+          + declaration(notch, "    private init() {").replace("    private init()", "    func installHotkey()", 1)
+          + declaration(notch, "    func toggleFromShortcut()") + toggle[0]
+          + declaration(notch, "    private func syncShortcut()").replace("private func", "func", 1)
+              .replace("NotchSupport.holdsShortcut()", "NotchSupport.holdsShortcut(in: ReviewDefaults.current)")
           + "}\n}\n")
     write("ShelfDropRouting.swift", "import AppKit\n\nextension ShelfDropRoutingContract {\n"
           + declaration(canvas, "struct NotchFileDropActions {")
@@ -1799,7 +1819,10 @@ def main():
           + "".join(declaration(window_directional, prefix).replace("private ", "", 1)
                     for prefix in ["private enum WindowEdgeSnapPointerInput {",
                                    "private struct WindowEdgeSnapDrag {",
-                                   "private struct WindowLayoutTarget {"])
+                                   "private struct WindowLayoutTarget {",
+                                   "private struct WindowPointerGesture {",
+                                   "private struct PendingWindowGesture {",
+                                   "private struct WindowGestureTarget {"])
           + "final class Host: Fixture {\n"
           + "".join(declaration(window_directional, prefix).replace("private ", "", 1)
                     .replace("AXIsProcessTrusted()", "WindowEdgeSnapRuntimeTests.accessibilityGranted")
@@ -1819,7 +1842,15 @@ def main():
               "    private func armEdgeSnapStillCheck(",
               "    private func resetEdgeSnapTrail()",
               "    private func applyEdgeSnap(",
-              "    private func cancelEdgeSnapTracking()"])
+              "    private func cancelEdgeSnapTracking()",
+              "    private var edgeSnapCanTrack:",
+              "    private func forwardToEdgeSnap(",
+              "    private var gestureState:",
+              "    private var trackedGestureButton:",
+              "    private func handleGestureEvent(",
+              "    private func gestureChord(",
+              "    private func arm(",
+              "    private func promote("])
           + "}\n}\n")
     write("WindowGestureApplyRuntime.swift", "import AppKit\nimport CoreGraphics\nimport Foundation\n"
           + "extension WindowGestureApplyRuntimeTests {\n"
