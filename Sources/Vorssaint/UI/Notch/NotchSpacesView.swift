@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Vorssaint
 
+import AppKit
 import SwiftUI
 
 struct NotchSpacesView: View {
     @ObservedObject private var spaces = NotchSpacesService.shared
     @ObservedObject private var permissions = Permissions.shared
     @ObservedObject private var l10n = L10n.shared
-    @State private var renaming: NotchSpace?
-    @State private var name = ""
     private var text: NotchSpacesStrings { FeatureStrings.notchSpaces(l10n.language) }
 
     var body: some View {
@@ -40,10 +39,7 @@ struct NotchSpacesView: View {
                             .disabled(space.current || spaces.switching || !permissions.accessibility)
                             .accessibilityAddTraits(space.current ? .isSelected : [])
                             if space.nameKey != nil {
-                                Button {
-                                    name = space.name ?? ""
-                                    renaming = space
-                                } label: { Image(systemName: "pencil") }
+                                Button { presentRename(space) } label: { Image(systemName: "pencil") }
                                 .buttonStyle(.plain)
                                 .help(text.rename)
                                 .accessibilityLabel(text.rename)
@@ -60,16 +56,23 @@ struct NotchSpacesView: View {
             }
         }
         .onAppear { spaces.refresh() }
-        .alert(text.rename, isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-            TextField(text.rename, text: $name)
-            Button(FeatureStrings.scratchpad(l10n.language).cancel, role: .cancel) { renaming = nil }
-            Button(text.resetName) {
-                if let space = renaming { spaces.rename(space, to: "") }
-                renaming = nil
-            }
-            Button(text.rename) {
-                if let space = renaming { spaces.rename(space, to: name) }
-                renaming = nil
+    }
+
+    private func presentRename(_ space: NotchSpace) {
+        DispatchQueue.main.async {
+            let field = NSTextField(string: space.name ?? "")
+            field.frame = NSRect(x: 0, y: 0, width: 240, height: 24)
+            let alert = NSAlert()
+            alert.messageText = text.rename
+            alert.accessoryView = field
+            alert.addButton(withTitle: text.rename)
+            alert.addButton(withTitle: FeatureStrings.scratchpad(l10n.language).cancel)
+            alert.addButton(withTitle: text.resetName)
+            alert.window.initialFirstResponder = field
+            switch NotchIslandAlert.run(alert, above: NotchService.shared.presentationWindow) {
+            case .alertFirstButtonReturn: spaces.rename(space, to: field.stringValue)
+            case .alertThirdButtonReturn: spaces.rename(space, to: "")
+            default: break
             }
         }
     }
