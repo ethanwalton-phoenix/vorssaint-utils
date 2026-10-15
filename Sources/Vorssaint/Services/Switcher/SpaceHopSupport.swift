@@ -12,6 +12,13 @@ enum SpaceHopSupport {
     /// with synthetic shortcuts.
     static let maximumArrowSteps = 16
 
+    /// System symbolic hotkey ids 118 through 126 address desktops 1...9.
+    /// A full-screen Space or a later desktop uses directional travel.
+    static func desktopHotKeyID(number: Int?) -> Int32? {
+        guard let number, (1...9).contains(number) else { return nil }
+        return Int32(117 + number)
+    }
+
     /// What a hop does right after activating the app.
     enum FirstStage: Equatable {
         /// Activating the app travels on its own, so wait for it to land.
